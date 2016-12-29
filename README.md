@@ -19,6 +19,4 @@
 
 ## Device Picture
 
-![Redmi 4 Prime](https://imgsa.baidu.com/baike/c0%3Dbaike80%2C5%2C5%2C80%2C26/sign=657dc0c79f0a304e462fa8a8b0a1cce3/4d086e061d950a7b9a6afa0702d162d9f3d3c992.jpg "360 N4S Prime")
-
-
+![Redmi 4 Prime](http://cdimg.good.cc/images/UploadImage/0/613/613911.png "360 N4S Prime")
