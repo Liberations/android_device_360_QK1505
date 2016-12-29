@@ -20,5 +20,3 @@
 ## Device Picture
 
 ![Redmi 4 Prime](http://cdimg.good.cc/images/UploadImage/0/613/613911.png "360 N4S Prime")
-
-
