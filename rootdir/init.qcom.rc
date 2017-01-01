@@ -30,7 +30,7 @@ import init.msm.usb.configfs.rc
 import init.target.rc
 import init.qcom.factory.rc
 # qiku add for init.qiku.rc
-import init.qiku.rc
+#import init.qiku.rc
 # qiku end
 
 on early-init
@@ -970,7 +970,7 @@ service wifi-crda /system/bin/sh /system/etc/init.crda.sh
 on property:sys.boot_completed=1
     start qcom-post-boot
     start qti-testscripts
-    start boot-checkend
+   # start boot-checkend
 
 service atfwd /system/bin/ATFWD-daemon
     class late_start
@@ -1235,16 +1235,16 @@ service poweroffhandler /system/bin/poweroffhandler
     group graphics audio
     disabled
     oneshot
-service boot-check /system/bin/sh /system/etc/init.lct.bootcheck.sh
-    class main
-    user root
-    oneshot
+#service boot-check /system/bin/sh /system/etc/init.lct.bootcheck.sh
+#    class main
+#    user root
+#    oneshot
 
-service boot-checkend /system/bin/sh /system/etc/init.lct.bootcheckend.sh
-    class main
-    user root
-    disabled
-    oneshot
+#service boot-checkend /system/bin/sh /system/etc/init.lct.bootcheckend.sh
+#    class main
+#    user root
+#   disabled
+#    oneshot
 
 service mm_audio_ftm /system/bin/mm-audio-ftm
     user root

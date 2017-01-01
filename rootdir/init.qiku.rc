@@ -1,0 +1,253 @@
+# PowerMo modified begin
+import init.powermo.rc
+# PowerMo modified end
+
+# qiku customizes
+
+on init
+    mkdir /panic 0770 root system
+
+    # create traffic folder for FEATURE_SYS_DATAFLOW_MONITOR,liyongzhi
+    mkdir /dev/traffic 0755 system system
+
+    # mkdir /autobak 0700 system sdcard_rw
+
+    chown system radio /dev/yl_params1
+    chmod 0660 /dev/yl_params1
+    #add for sensor
+    #ALS
+    chown system system /sys/devices/virtual/input/input5/name
+    chown system system /sys/devices/virtual/input/input5/power_state
+    chown system system /sys/devices/virtual/input/input5/taos_lux
+    chown system system /sys/devices/virtual/input/input5/uevent
+    #PS
+    chown system system /sys/devices/virtual/input/input4/name
+    chown system system /sys/devices/virtual/input/input4/enable_ps_sensor
+    chown system system /sys/devices/virtual/input/input4/ps_poll_delay
+    chown system system /sys/devices/virtual/input/input4/pscalibration
+    chown system system /sys/devices/virtual/input/input4/uevent
+
+    chown system system /sys/bus/i2c/drivers/nxu8010/reg
+    mkdir  /dev/camerainfo
+    # camera factory info
+    chmod 0666 /dev/camera0
+    chown radio system /dev/camera0
+    chmod 0660 /dev/camera1
+    chown radio system /dev/camera1
+    symlink /dev/camera0 /dev/camerainfo/camera0
+    symlink /dev/camera1 /dev/camerainfo/camera1
+    # qiku end
+
+    #add for ion display
+    chmod 444 /proc/qk_ion_pool
+
+    # add for ColorManager
+    chmod 666 /sys/class/graphics/fb0/color_temp_ctrl
+
+    #huangguanyuan,qiku add for volte vt diag begin
+    chown root qcom_diag /sys/kernel/debug/msm_vidc/debug_level
+    chown root qcom_diag /sys/kernel/debug/msm_vidc/fw_level
+    chmod 0664 /sys/kernel/debug/msm_vidc/debug_level
+    chmod 0664 /sys/kernel/debug/msm_vidc/fw_level
+    #huangguanyuan,qiku add for volte vt diag end
+
+on fs
+    chown system system /sys/class/switch/hall/enable
+    chown system system /sys/class/switch/hall/name
+    chown system system /sys/class/switch/hall/state
+
+    chown system system /dev/shtsc
+    chown system system /sys/class/touchscreen/touchscreen_dev/mode
+    chown system system /sys/class/touchscreen/touchscreen_dev/firmware_update
+    chown system system /sys/class/touchscreen/touchscreen_dev/firmware_version
+
+    restorecon_recursive   /persist
+
+    # QK1505-A02 have not this block
+    # wait /dev/block/bootdevice/by-name/autobak
+    # mount ext4 /dev/block/bootdevice/by-name/autobak /autobak noatime nosuid nodev barrier=1 nodelalloc
+
+    wait /dev/block/bootdevice/by-name/panic
+    mount ext4 /dev/block/bootdevice/by-name/panic /panic noatime nosuid nodev barrier=1 nodelalloc
+
+on post-fs
+    chown root system /panic
+    chmod 0770 /panic
+    restorecon /panic
+
+    # chown system sdcard_rw /autobak
+    # chmod 0700 /autobak
+
+on post-fs-data
+    mkdir /data/clb
+    chown system system /data/clb
+    chmod 0666 /data/clb
+    # Add by wanghaiteng to create sandbox layout
+    mkdir /data/sandbox 0771 system system
+    mkdir /data/sandbox/data 0771 system system
+    # qiku end
+
+on boot
+    # Add for charging mode
+    chown system system /sys/class/power_supply/charge_mode
+    chown system audio /sys/class/power_supply/charge_scene
+
+    # Add for volume key wakeup control, 2016.03.31
+    chown system audio /sys/bus/platform/drivers/gpio-keys/soc:gpio_keys/volup_wakeup
+    chown system audio /sys/bus/platform/drivers/gpio-keys/soc:gpio_keys/voldown_wakeup
+
+    #add permissions for led
+    chown system system /sys/class/leds/red/blink
+    chown system system /sys/class/leds/green/blink
+    chown system system /sys/class/leds/blue/blink
+    # add for factory pattern, aihaofeng, 2016.03.24
+    chown system system /sys/class/leds/torch1-light0/brightness
+
+    # add for touch firmware calibrate
+    chown system system /sys/class/touchscreen/touchscreen_dev/calibrate
+    chown system system /sys/class/touchscreen/touchscreen_dev/firware_update
+
+    #for Gesture Wakeup
+    chown system system /sys/devices/virtual/touchscreen/touchscreen_dev/gesture_ctrl
+    chown system system /sys/class/touchscreen/touchscreen_dev/gesture_enabled
+
+    #add for vibrator
+    chown system system /sys/class/timed_output/vibrator/level
+    chown system system /sys/class/timed_output/vibrator/blank
+
+    #add for vkei
+    #chmod 0664 /sys/devices/virtual/switch/hall/state
+
+# Add for dump debug info to file
+on property:ro.qiku.boot.reason=excep_press_poweron
+    start dump_debug
+
+## Daemon processes to be run by init
+##
+
+#add for CTS test property services
+service cts_prop /system/bin/cts_prop
+    class core
+    user system
+    group system
+    oneshot
+# qiku end
+
+#service comm_radio /system/bin/sh /system/etc/comm.sh 99
+
+# qiku begin, add
+# Add for crash twice reboot devices, wzh, 2016.07.05
+service crash_and_reset /system/bin/crash_and_reset
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+# qiku end
+
+    class main
+    oneshot
+
+# Add for dump debug info to file
+service dump_debug /system/bin/dumpdebuginfo
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+
+
+service recovery_service /system/bin/setmisc_recovery
+    class main
+    oneshot
+    disabled
+
+service boot_service /system/bin/cancel_recovery
+    class main
+    oneshot
+    disabled
+
+# to backup data & wifi
+service qiku_backup  /system/bin/sh /system/etc/qiku_backup.sh
+    class main
+    seclabel u:r:copy_apk_prvdata:s0
+    oneshot
+    disabled
+
+# Add for FEATURE_SUPPORT_FILESAFEBOX ,safebox
+service qksecureserver /system/bin/qksecureserver /data/.qiku/.qksecure
+    class late_start
+    ioprio be 2
+
+# add for logredirct
+service logredirect /system/bin/logredirect -s
+    class main
+    socket logredirect stream 0660 root system
+    disabled
+    oneshot
+
+#add for wifi mac address
+service wifi_mac  /system/bin/sh /system/etc/wifi/runbip.sh
+    class main
+    disabled
+    oneshot
+
+#add for viruscleaner
+service VirusClean /system/bin/VirusCleanerService
+    class main
+
+service qiku_ss_ramdump /system/bin/subsystem_ramdump 2
+    class main
+    user system
+    group sdcard_rw
+    disabled
+
+# for log level control, zhangjie, 2016.06.12
+service logcontrol /system/bin/logcontrol
+    class main
+    user root
+    oneshot
+    disabled
+
+on property:persist.qiku.log.level=*
+    start logcontrol
+
+on property:persist.qiku.restart_level=1
+    setprop persist.sys.ssr.restart_level "a530_zap slpi"
+
+on property:persist.qiku.restart_level=3
+    setprop persist.sys.ssr.restart_level ALL_ENABLE
+
+on property:persist.qiku.restart_level=4
+    setprop persist.sys.ssr.restart_level "a530_zap slpi modem"
+
+on property:persist.qiku.restart_level=adsp,venus
+    setprop persist.sys.ssr.restart_level "venus a530_zap adsp slpi"
+
+on property:persist.qiku.restart_level=adsp,venus,wcnss
+    setprop persist.sys.ssr.restart_level "venus a530_zap AR6320 adsp slpi"
+
+on property:persist.qiku.restart_level=adsp,venus,modem
+    setprop persist.sys.ssr.restart_level "venus a530_zap adsp slpi modem"
+
+on property:persist.qiku.restart_level=adsp,venus,modem,wcnss
+    setprop persist.sys.ssr.restart_level ALL_ENABLE
+
+on property:persist.qiku.ramdump=1
+    write /sys/module/subsystem_restart/parameters/enable_ramdumps 1
+    mkdir /sdcard/ramdump 770
+    start qiku_ss_ramdump
+
+on property:persist.qiku.ramdump=0
+    write /sys/module/subsystem_restart/parameters/enable_ramdumps 0
+    stop qiku_ss_ramdump
+
+on property:persist.qiku.download_mode=0
+    write /sys/module/msm_poweroff/parameters/download_mode 0
+
+on property:persist.qiku.download_mode=1
+    write /sys/module/msm_poweroff/parameters/download_mode 1
+
+on property:sys.boot_completed=1
+    write /proc/sys/vm/dirty_background_ratio 3
+    write /proc/sys/vm/dirty_ratio 10
