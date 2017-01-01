@@ -1514,6 +1514,8 @@ lib/modules/wil6210.ko
 bin/port-bridge
 bin/ptt_socket_app
 bin/ATFWD-daemon
+bin/sh
+bin/versiond
 
 # Time services
 -app/TimeService/TimeService.apk
