@@ -27,13 +27,13 @@
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-log_node=/dev/kmsg
-logw()
-{
-  /system/bin/log -p w -t "usbconfig: JACKSUN" "$@"
-  echo "usbconfig: JACKSUN" "$@" > $log_node
-}
-logw "log starting"
+#log_node=/dev/kmsg
+#logw()
+#{
+#  /system/bin/log -p w -t "usbconfig: JACKSUN" "$@"
+#  echo "usbconfig: JACKSUN" "$@" > $log_node
+#3
+#logw "log starting"
 chown -h root.system /sys/devices/platform/msm_hsusb/gadget/wakeup
 chmod -h 220 /sys/devices/platform/msm_hsusb/gadget/wakeup
 
@@ -127,11 +127,11 @@ fi
 # Allow USB enumeration with default PID/VID
 #
 baseband=`getprop ro.baseband`
+debuggable=`getprop ro.debuggable`
 echo 1  > /sys/class/android_usb/f_mass_storage/lun/nofua
 usb_config=`getprop persist.sys.usb.config`
-logw "pre $usb_config"
 case "$usb_config" in
-    "" | "adb") #USB persist config not set, select default configuration
+    "" | "adb" | "none") #USB persist config not set, select default configuration
       case "$esoc_link" in
           "PCIe")
               setprop persist.sys.usb.config diag,diag_mdm,serial_cdev,rmnet_qti_ether,mass_storage,adb
@@ -166,7 +166,12 @@ case "$usb_config" in
 			esac
 		  ;;
 	          "msm8952" | "msm8953")
-		      setprop persist.sys.usb.config defaultroot,adb
+		     #setprop persist.sys.usb.config diag,serial_smd,rmnet_ipa,adb
+                     if [ -z "$debuggable" -o "$debuggable" = "1" ]; then
+                         setprop persist.sys.usb.config mtp,adb
+                     else
+                         setprop persist.sys.usb.config mtp
+                     fi
 		  ;;
 	          *)
 		      setprop persist.sys.usb.config diag,adb
@@ -179,8 +184,8 @@ case "$usb_config" in
       ;;
   * ) ;; #USB persist config exists, do nothing
 esac
-usb_config_post=`getprop persist.sys.usb.config`
-logw "post $usb_config_post"
+#usb_config_post=`getprop persist.sys.usb.config`
+#logw "post $usb_config_post"
 
 #
 # Do target specific things

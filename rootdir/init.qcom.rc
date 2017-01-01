@@ -457,7 +457,7 @@ on property:vold.decrypt=trigger_restart_framework
     start qcom-c_main-sh
     start config_bt_addr
     start config_bluetooth
-    start wcnss-service
+    #start wcnss-service
 
 on property:persist.env.fastdorm.enabled=true
     setprop persist.radio.data_no_toggle 1
@@ -529,47 +529,47 @@ service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     group bluetooth net_bt_admin
     disabled
     oneshot
-service blueduttest /system/bin/sh /system/etc/bluedut.sh
-    class late_start
-    user root
-    disabled
-    oneshot
+#service blueduttest /system/bin/sh /system/etc/bluedut.sh
+#    class late_start
+#    user root
+#    disabled
+#    oneshot
 
 #wangxun add openwifi service for factory&RF wifi test.
 #less than android5.0 version
-service openwifi /system/bin/sh /system/etc/wifitest.sh
-    class late_start
-    user root
-    disabled
-    oneshot
+#service openwifi /system/bin/sh /system/etc/wifitest.sh
+#    class late_start
+#    user root
+#    disabled
+#    oneshot
 
-service closewifi /system/bin/sh /system/etc/wifitest_close.sh
-    class late_start
-    user root
-    disabled
-    oneshot
+#service closewifi /system/bin/sh /system/etc/wifitest_close.sh
+#    class late_start
+#    user root
+#    disabled
+#    oneshot
 
 #For L-version wifi rf test by wangxun
-    service openwifi_L /system/bin/sh /system/etc/wifitest.sh
-    oneshot
-    disabled
+#    service openwifi_L /system/bin/sh /system/etc/wifitest.sh
+#   oneshot
+#    disabled
 
-    service closewifi_L /system/bin/sh /system/etc/wifitest_close.sh
-    oneshot
-    disabled
+#    service closewifi_L /system/bin/sh /system/etc/wifitest_close.sh
+#    oneshot
+#    disabled
 
-    on property:persist.sys.openwifi_L=1
-    start openwifi_L
+#    on property:persist.sys.openwifi_L=1
+#    start openwifi_L
 
-    on property:persist.sys.closewifi_L=1
-    start closewifi_L
+#    on property:persist.sys.closewifi_L=1
+#    start closewifi_L
 
-    service iwprivftm /system/bin/sh /system/etc/iwpriv.agent.sh
-    oneshot
-    disabled
+#    service iwprivftm /system/bin/sh /system/etc/iwpriv.agent.sh
+#    oneshot
+#    disabled
 
-    on property:persist.sys.iwpriv=1
-    start iwprivftm
+#    on property:persist.sys.iwpriv=1
+#    start iwprivftm
 #end
 
 on property:bluetooth.hciattach=true
@@ -577,55 +577,55 @@ on property:bluetooth.hciattach=true
 
 on property:bluetooth.hciattach=false
     setprop bluetooth.status off
-
-service sensors_test1 /system/bin/sensors_test 5 c c 
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-on property:sys.debug.msensor_test=1
-    start sensors_test1
-service sensors_test2 /system/bin/sensors_test 5 l
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-on property:sys.debug.blackcard_test=1
-    start sensors_test2
-service sensors_test3 /system/bin/sensors_test 5 l c 
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-on property:sys.debug.psensor_test=1
-    start sensors_test3
-service sensors_test4 /system/bin/sensors_test 5 a c 
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-on property:sys.debug.acc_test=1
-    start sensors_test4
-service sensors_test5 /system/bin/sensors_test 5 g c 
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-on property:sys.debug.gysensor_test=1
-    start sensors_test5
-service sensors_testgy /system/bin/sensors_test 5 g 
-    class main
-    user root
-    group root
-    oneshot
-    disabled
-on property:sys.debug.gysensor_read=1
-    start sensors_testgy
+#no need
+#service sensors_test1 /system/bin/sensors_test 5 c c 
+#    class main
+#    user root
+#    group root
+#    oneshot
+#    disabled
+#on property:sys.debug.msensor_test=1
+#    start sensors_test1
+#service sensors_test2 /system/bin/sensors_test 5 l
+#    class main
+#    user root
+#    group root
+#    oneshot
+#    disabled
+#on property:sys.debug.blackcard_test=1
+#    start sensors_test2
+#service sensors_test3 /system/bin/sensors_test 5 l c 
+#    class main
+#    user root
+#    group root
+#    oneshot
+#    disabled
+#on property:sys.debug.psensor_test=1
+#    start sensors_test3
+#service sensors_test4 /system/bin/sensors_test 5 a c 
+#    class main
+#    user root
+#    group root
+#    oneshot
+#    disabled
+#on property:sys.debug.acc_test=1
+#    start sensors_test4
+#service sensors_test5 /system/bin/sensors_test 5 g c 
+#    class main
+#    user root
+#    group root
+#    oneshot
+#    disabled
+#on property:sys.debug.gysensor_test=1
+#    start sensors_test5
+#service sensors_testgy /system/bin/sensors_test 5 g 
+#    class main
+#    user root
+#    group root
+#    oneshot
+#    disabled
+#on property:sys.debug.gysensor_read=1
+#    start sensors_testgy
 service hciattach_ath3k /system/bin/sh /system/etc/init.ath3k.bt.sh
      class late_start
      user bluetooth
@@ -655,8 +655,8 @@ service btsnoop /system/bin/btsnoop
    oneshot
 
 #ftmd start with powerup will cause CTS issue.
-on property:sys.ftmd=1
-    start ftmd
+#on property:sys.ftmd=1
+#    start ftmd
 
 service ftmd  /system/bin/ftmdaemon
     class late_start
@@ -678,12 +678,12 @@ service port-bridge /system/bin/port-bridge
     disabled
     oneshot
 
-service port-bridge2 /system/bin/port-bridge 1
-    class main
-    user radio system
-    group radio system inet
-    disabled
-    oneshot
+#service port-bridge2 /system/bin/port-bridge 1
+#    class main
+#    user radio system
+#    group radio system inet
+#    disabled
+#    oneshot
 
 service qmiproxy /system/bin/qmiproxy
     class main
@@ -1116,39 +1116,39 @@ on property:persist.sys.qlogd=1
 on property:persist.sys.qlogd=0
     stop qlogd
 	
-service sdlog /system/bin/sdlog
-    class main
-    user root
-    disabled
-    oneshot
+#service sdlog /system/bin/sdlog
+#    class main
+#    user root
+#    disabled
+#    oneshot
 
-on property:persist.service.sdlog.enable=1
-    start sdlog
-on property:persist.service.sdlog.enable=0
-   stop sdlog
+#on property:persist.service.sdlog.enable=1
+#    start sdlog
+#on property:persist.service.sdlog.enable=0
+#   stop sdlog
    
-service adjust_settings /system/bin/adjust_settings
-    class main
-    user root
-    disabled
-    oneshot
+#service adjust_settings /system/bin/adjust_settings
+#    class main
+#    user root
+#    disabled
+#    oneshot
 
-on property:sys.boot_completed=1
-    start adjust_settings
+#on property:sys.boot_completed=1
+#    start adjust_settings
 	
-service set_sn /system/bin/adjust_settings setsn
-    disabled
-    oneshot
+#service set_sn /system/bin/adjust_settings setsn
+#    disabled
+#    oneshot
 
-on property:sys.sn_set=1
-	start set_sn
+#on property:sys.sn_set=1
+#	start set_sn
 	
-service set_lenovo_sn2 /system/bin/adjust_settings setlenovosn2
-    disabled
-    oneshot
+#service set_lenovo_sn2 /system/bin/adjust_settings setlenovosn2
+#    disabled
+#    oneshot
 
-on property:sys.lenovo.sn_set=1
-    start set_lenovo_sn2
+#on property:sys.lenovo.sn_set=1
+#    start set_lenovo_sn2
 
 
 service vm_bms /system/bin/vm_bms
@@ -1246,17 +1246,17 @@ service poweroffhandler /system/bin/poweroffhandler
 #   disabled
 #    oneshot
 
-service mm_audio_ftm /system/bin/mm-audio-ftm
-    user root
-    group root
-    disabled
-    oneshot
+#service mm_audio_ftm /system/bin/mm-audio-ftm
+#    user root
+#    group root
+#    disabled
+#    oneshot
 
-on property:sys.audio_ftm_loopback=1
-    start mm_audio_ftm
+#on property:sys.audio_ftm_loopback=1
+#    start mm_audio_ftm
 
-on property:sys.audio_ftm_loopback=0
-    stop mm_audio_ftm
+#on property:sys.audio_ftm_loopback=0
+#    stop mm_audio_ftm
 
 #caoyang_20160612 for Charging Limit start
 on property:persist.sys.runin=enable
