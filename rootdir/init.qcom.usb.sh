@@ -27,13 +27,6 @@
 # IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-#log_node=/dev/kmsg
-#logw()
-#{
-#  /system/bin/log -p w -t "usbconfig: JACKSUN" "$@"
-#  echo "usbconfig: JACKSUN" "$@" > $log_node
-#3
-#logw "log starting"
 chown -h root.system /sys/devices/platform/msm_hsusb/gadget/wakeup
 chmod -h 220 /sys/devices/platform/msm_hsusb/gadget/wakeup
 
@@ -184,8 +177,6 @@ case "$usb_config" in
       ;;
   * ) ;; #USB persist config exists, do nothing
 esac
-#usb_config_post=`getprop persist.sys.usb.config`
-#logw "post $usb_config_post"
 
 #
 # Do target specific things

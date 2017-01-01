@@ -38,6 +38,8 @@ on early-init
 on post-fs
     export LD_PRELOAD libNimsWrap.so
 
+on init
+    mkdir /cust 0771 system system
 on fs
     wait /dev/block/bootdevice
 
@@ -58,10 +60,21 @@ on fs
 
     wait /dev/block/bootdevice/by-name/dsp
     mount ext4 /dev/block/bootdevice/by-name/dsp /dsp ro nosuid nodev barrier=1
+    #restorecon_recursive /dsp
 
     wait /dev/block/bootdevice/by-name/modem
     mount vfat /dev/block/bootdevice/by-name/modem /firmware ro context=u:object_r:firmware_file:s0,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337
-    write /sys/kernel/boot_adsp/boot 1
+    #write /sys/kernel/boot_adsp/boot 1
+
+on post-fs
+    # We chown/chmod /cust again so because mount is run as root + defaults
+    chown system system /cust
+    chmod 0771 /cust
+    # We restorecon /cust in case the cust partition has been reset.
+    restorecon_recursive /cust
+
+    # create the lost+found directories, so as to enforce our permissions
+    mkdir /cust/lost+found 0770 root root
 
     wait /dev/block/bootdevice/by-name/oem
     mount ext4 /dev/block/bootdevice/by-name/oem /oem ro nosuid nodev barrier=1
@@ -82,6 +95,7 @@ service qcamerasvr /system/bin/mm-qcamera-daemon
     class late_start
     user camera
     group camera system inet input graphics
+    writepid /dev/cpuset/system-background/tasks
 
 on init
    write /sys/module/qpnp_rtc/parameters/poweron_alarm 1
@@ -127,6 +141,7 @@ service perfd /system/vendor/bin/perfd
    class main
    user root
    disabled
+   writepid /dev/cpuset/system-background/tasks
 
 service thermal-engine /system/vendor/bin/thermal-engine
    class main
@@ -154,12 +169,10 @@ on boot
     chmod 0440 /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch
     chmod 0660 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch_enable
     chmod 0440 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch
-    chmod 0644 /dev/goodix_fp
     chown system drmrpc /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch_enable
     chown system drmrpc /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch
     chown system drmrpc /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch_enable
     chown system drmrpc /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch
-    chown system system /dev/goodix_fp
 
 service wcnss-service /system/bin/wcnss_service
     class main
@@ -236,11 +249,11 @@ on charger
     mount ext4 /dev/block/bootdevice/by-name/system /system ro barrier=1
     load_all_props
     setprop sys.usb.configfs 0
-    setprop persist.sys.usb.config mass_storage
+    setprop persist.sys.usb.config charging
     start qcom-post-boot
-    setprop persist.sys.usb.config mass_storage
+    setprop persist.sys.usb.config charging
     start hvdcp_opti
-	start thermal-engine
+
 service dts_configurator /system/bin/dts_configurator
     class late_start
     user system
@@ -297,22 +310,18 @@ service mdtpd /system/vendor/bin/mdtpd
 on boot
     write /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/fw_name PR1702898-s3528t_00260005_00380008.img
     write /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/update_fw 1
-	
-service fingerprintd /system/bin/fingerprintd
-    class late_start
-    user system
-	group system
 
-service gx_fpd /system/bin/gx_fpd
-    class late_start
-    user root
-    group root system
+    # update foreground cpuset now that processors are up
+    write /dev/cpuset/foreground/cpus 0-7
+    write /dev/cpuset/foreground/boost/cpus 4-7
+    write /dev/cpuset/background/cpus 0-1
+    write /dev/cpuset/system-background/cpus 0-3
 
-on property:sys.fp.goodix=0
-    stop gx_fpd
-	
-# nutlet ifaata service
-service teeserver /system/bin/teeserver
-    class main
-    user  system
-    group system
+service mtservice /system/bin/mtd
+    class late_start
+
+service mlipayservice /system/bin/mlipayd
+    class late_start
+
+service vsimservice /system/bin/vsimd
+    class late_start

@@ -266,7 +266,7 @@ case "$target" in
                                     setprop qemu.hw.mainkeys 0
                                     ;;
                        "MTP")
-                                    setprop qemu.hw.mainkeys 0
+                                    setprop qemu.hw.mainkeys 1
                                     ;;
                        "RCM")
                                     setprop qemu.hw.mainkeys 0
@@ -295,7 +295,7 @@ case "$target" in
                                     setprop qemu.hw.mainkeys 0
                                     ;;
                        "MTP")
-                                    setprop qemu.hw.mainkeys 0
+                                    setprop qemu.hw.mainkeys 1
                                     ;;
                        "RCM")
                                     setprop qemu.hw.mainkeys 0
@@ -333,17 +333,15 @@ else
 fi
 
 cur_version_info=`cat /firmware/verinfo/ver_info.txt`
-#if [ ! -f /firmware/verinfo/ver_info.txt -o "$prev_version_info" != "$cur_version_info" ]; then
+if [ ! -f /firmware/verinfo/ver_info.txt -o "$prev_version_info" != "$cur_version_info" ]; then
     rm -rf /data/misc/radio/modem_config
     mkdir /data/misc/radio/modem_config
     chmod 770 /data/misc/radio/modem_config
     cp -r /firmware/image/modem_pr/mcfg/configs/* /data/misc/radio/modem_config
-    # mbn upgrade list
-    cp /system/etc/mbn_ota.txt /data/misc/radio/modem_config
     chown -hR radio.radio /data/misc/radio/modem_config
     cp /firmware/verinfo/ver_info.txt /data/misc/radio/ver_info.txt
     chown radio.radio /data/misc/radio/ver_info.txt
-#fi
-cp /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config
-chown radio.radio /data/misc/radio/modem_config/mbn_ota.txt
+fi
+cp -r /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config/mbn_ota.txt
+chown -hR radio.radio /data/misc/radio/modem_config/mbn_ota.txt
 echo 1 > /data/misc/radio/copy_complete
