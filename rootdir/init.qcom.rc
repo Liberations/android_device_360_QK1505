@@ -29,6 +29,9 @@ import init.qcom.usb.rc
 import init.msm.usb.configfs.rc
 import init.target.rc
 import init.qcom.factory.rc
+# qiku add for init.qiku.rc
+import init.qiku.rc
+# qiku end
 
 on early-init
     mount debugfs debugfs /sys/kernel/debug
@@ -79,9 +82,6 @@ on boot
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
 
-    chmod 0660 /proc/gesture/onoff
-    chown system system /proc/gesture/onoff
-
     chmod 0660 /dev/ttyHS2
     chown bluetooth bluetooth /dev/ttyHS2
 
@@ -106,8 +106,6 @@ on boot
     mkdir /dev/socket/netmgr 0750 radio radio
 
     setprop wifi.interface wlan0
-    
-    setprop persist.radio.start_ota_daemon 1
 
 #   Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
@@ -118,16 +116,11 @@ on boot
 
     #enable camera read sensors data
     setprop persist.camera.gyro.disable 0
-    
-    #close pdaf focus circle qhq.wt
     setprop persist.camera.stats.test 5
-
-    #open RNR wuguang.wt
-    setprop persist.camera.feature.cac 1
-    setprop persist.camera.imglib.cac3 2
 
     #Remove SUID bit for iproute2 ip tool
     chmod 0755 /system/bin/ip
+
 
     chmod 0444 /sys/devices/platform/msm_hsusb/gadget/usb_state
 
@@ -186,33 +179,13 @@ on boot
 
     # Set the console loglevel to < KERN_INFO
     # Set the default message loglevel to KERN_INFO
-    write /proc/sys/kernel/printk "7 6 1 7"
+    write /proc/sys/kernel/printk "6 6 1 7"
 
     # Allow access for CCID command/response timeout configuration
     chown system system /sys/module/ccid_bridge/parameters/bulk_msg_timeout
 
     # bond0 used by FST Manager
     chown wifi wifi /sys/class/net/bond0/bonding/queue_id
-
-    # Notification LED
-    chown system system /sys/class/leds/red/blink
-    chown system system /sys/class/leds/green/blink
-    chown system system /sys/class/leds/blue/blink
-    chown system system /sys/class/leds/red/brightness
-    chown system system /sys/class/leds/green/brightness
-    chown system system /sys/class/leds/blue/brightness
-
-    # IR
-    chown system system /sys/class/leds/infrared/transmit
-    chown system system /sys/class/leds/infrared/brightness
-
-    # Goodix Fingerprint
-    chown system system /dev/goodix_fp
-    chmod 0644 /dev/goodix_fp        
-    chmod 07777 /system/bin/gx_fpd    
-
-    setprop persist.sys.fp.vendor none
-    start gx_fpd
 
 # msm specific files that need to be created on /data
 on post-fs-data
@@ -310,7 +283,9 @@ on post-fs-data
     mkdir /data/hostapd 0770 system wifi
 
     # Create /data/time folder for time-services
-    mkdir /data/time/ 0700 system system
+    # Modify by wzh,for saving time in persist/time
+    #mkdir /data/time/ 0700 system system
+    mkdir /persist/time/ 0700 system system
 
     mkdir /data/audio/ 0770 media audio
 
@@ -327,6 +302,8 @@ on post-fs-data
     mkdir /data/misc/fm 0770 system system
     chmod 0770 /data/misc/fm
 
+    # Sensor
+    mkdir /persist/sensors 0770 system system
     # RIDL data
     mkdir /data/misc/SelfHost/ 0710 system shell
     mkdir /data/misc/SelfHost/QCLogs/ 2750 system shell
@@ -370,6 +347,9 @@ on post-fs-data
     #Create SWAP related dirs
     mkdir /data/system/swap 0770 root system
     chmod 2770 /data/system/swap
+    
+    #Create gx_fpd related dirs
+    mkdir /data/system/fingerprint 0770 root system
 
 service perfd /system/vendor/bin/perfd
    class main
@@ -435,12 +415,6 @@ on property:persist.debug.trace=1
     mkdir /data/core 0777 root root
     write /proc/sys/kernel/core_pattern "/data/core/%E.%p.%e"
 
-#bug156417 zhaoqf_sh add Allow usb charging to be disabled peristently
-on property:persist.sys.chgdisabled=1
-    write /sys/class/power_supply/battery/charging_enabled 0
-on property:persist.sys.chgdisabled=0
-    write /sys/class/power_supply/battery/charging_enabled 1
-
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd
 
@@ -483,6 +457,7 @@ on property:vold.decrypt=trigger_restart_framework
     start qcom-c_main-sh
     start config_bt_addr
     start config_bluetooth
+    start wcnss-service
 
 on property:persist.env.fastdorm.enabled=true
     setprop persist.radio.data_no_toggle 1
@@ -554,6 +529,48 @@ service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     group bluetooth net_bt_admin
     disabled
     oneshot
+service blueduttest /system/bin/sh /system/etc/bluedut.sh
+    class late_start
+    user root
+    disabled
+    oneshot
+
+#wangxun add openwifi service for factory&RF wifi test.
+#less than android5.0 version
+service openwifi /system/bin/sh /system/etc/wifitest.sh
+    class late_start
+    user root
+    disabled
+    oneshot
+
+service closewifi /system/bin/sh /system/etc/wifitest_close.sh
+    class late_start
+    user root
+    disabled
+    oneshot
+
+#For L-version wifi rf test by wangxun
+    service openwifi_L /system/bin/sh /system/etc/wifitest.sh
+    oneshot
+    disabled
+
+    service closewifi_L /system/bin/sh /system/etc/wifitest_close.sh
+    oneshot
+    disabled
+
+    on property:persist.sys.openwifi_L=1
+    start openwifi_L
+
+    on property:persist.sys.closewifi_L=1
+    start closewifi_L
+
+    service iwprivftm /system/bin/sh /system/etc/iwpriv.agent.sh
+    oneshot
+    disabled
+
+    on property:persist.sys.iwpriv=1
+    start iwprivftm
+#end
 
 on property:bluetooth.hciattach=true
     start hciattach
@@ -561,6 +578,54 @@ on property:bluetooth.hciattach=true
 on property:bluetooth.hciattach=false
     setprop bluetooth.status off
 
+service sensors_test1 /system/bin/sensors_test 5 c c 
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+on property:sys.debug.msensor_test=1
+    start sensors_test1
+service sensors_test2 /system/bin/sensors_test 5 l
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+on property:sys.debug.blackcard_test=1
+    start sensors_test2
+service sensors_test3 /system/bin/sensors_test 5 l c 
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+on property:sys.debug.psensor_test=1
+    start sensors_test3
+service sensors_test4 /system/bin/sensors_test 5 a c 
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+on property:sys.debug.acc_test=1
+    start sensors_test4
+service sensors_test5 /system/bin/sensors_test 5 g c 
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+on property:sys.debug.gysensor_test=1
+    start sensors_test5
+service sensors_testgy /system/bin/sensors_test 5 g 
+    class main
+    user root
+    group root
+    oneshot
+    disabled
+on property:sys.debug.gysensor_read=1
+    start sensors_testgy
 service hciattach_ath3k /system/bin/sh /system/etc/init.ath3k.bt.sh
      class late_start
      user bluetooth
@@ -589,7 +654,11 @@ service btsnoop /system/bin/btsnoop
    disabled
    oneshot
 
-service ftmd /system/bin/logwrapper /system/bin/ftmdaemon
+#ftmd start with powerup will cause CTS issue.
+on property:sys.ftmd=1
+    start ftmd
+
+service ftmd  /system/bin/ftmdaemon
     class late_start
     user root
     group bluetooth net_bt_admin misc net_bt_stack qcom_diag net_bt
@@ -609,18 +678,18 @@ service port-bridge /system/bin/port-bridge
     disabled
     oneshot
 
+service port-bridge2 /system/bin/port-bridge 1
+    class main
+    user radio system
+    group radio system inet
+    disabled
+    oneshot
+
 service qmiproxy /system/bin/qmiproxy
     class main
     user radio
     group radio qcom_diag
     disabled
-
-# FM
-on property:hw.fm.init=0
-    write /sys/module/radio_iris_transport/parameters/fmsmd_set 0
-
-on property:hw.fm.init=1
-    write /sys/module/radio_iris_transport/parameters/fmsmd_set 1
 
 # QMUX must be in multiple groups to support external process connections
 service qmuxd /system/bin/qmuxd
@@ -769,10 +838,15 @@ service iprenew_p2p /system/bin/dhcpcd -n
     disabled
     oneshot
 
+#ptt_socket_app -f will cause CTS issue.
+on property:sys.ptt_socket_app=1
+    start ptt_ffbm
+
 service ptt_socket_app /system/bin/ptt_socket_app -d
     class main
     user root
     group root
+    disabled
     oneshot
 
 service ptt_ffbm /system/bin/ptt_socket_app -f -d
@@ -896,6 +970,7 @@ service wifi-crda /system/bin/sh /system/etc/init.crda.sh
 on property:sys.boot_completed=1
     start qcom-post-boot
     start qti-testscripts
+    start boot-checkend
 
 service atfwd /system/bin/ATFWD-daemon
     class late_start
@@ -941,7 +1016,7 @@ service ril-daemon2 /system/bin/rild -c 2
     socket rild-debug2 stream 660 radio system
     user root
     disabled
-    group radio cache inet misc audio sdcard_r sdcard_rw qcom_diag diag log
+    group radio cache inet misc audio sdcard_r sdcard_rw qcom_diag diag log net_raw
 
 service ril-daemon3 /system/bin/rild -c 3
     class main
@@ -949,7 +1024,7 @@ service ril-daemon3 /system/bin/rild -c 3
     socket rild-debug3 stream 660 radio system
     user root
     disabled
-    group radio cache inet misc audio sdcard_r sdcard_rw qcom_diag diag log
+    group radio cache inet misc audio sdcard_r sdcard_rw qcom_diag diag log net_raw
 
 service usb_uicc_enable /system/bin/sh /system/etc/init.qcom.uicc.sh
     class late_start
@@ -1018,7 +1093,7 @@ on property:sys.qbcharger.enable=true
 on property:sys.qbcharger.enable=false
     stop qbcharger
 
-service diag_mdlog_start /system/bin/diag_mdlog -s 200 -n 10
+service diag_mdlog_start /system/bin/diag_mdlog
     class late_start
     user shell
     group system qcom_diag sdcard_rw sdcard_r media_rw
@@ -1040,12 +1115,41 @@ on property:persist.sys.qlogd=1
     start qlogd
 on property:persist.sys.qlogd=0
     stop qlogd
+	
+service sdlog /system/bin/sdlog
+    class main
+    user root
+    disabled
+    oneshot
 
+on property:persist.service.sdlog.enable=1
+    start sdlog
+on property:persist.service.sdlog.enable=0
+   stop sdlog
+   
+service adjust_settings /system/bin/adjust_settings
+    class main
+    user root
+    disabled
+    oneshot
 
-on property:persist.radio.otaconfig=0
-    setprop persist.radio.start_ota_daemon 0
-on property:persist.radio.otaconfig=1
-    setprop persist.radio.start_ota_daemon 1
+on property:sys.boot_completed=1
+    start adjust_settings
+	
+service set_sn /system/bin/adjust_settings setsn
+    disabled
+    oneshot
+
+on property:sys.sn_set=1
+	start set_sn
+	
+service set_lenovo_sn2 /system/bin/adjust_settings setlenovosn2
+    disabled
+    oneshot
+
+on property:sys.lenovo.sn_set=1
+    start set_lenovo_sn2
+
 
 service vm_bms /system/bin/vm_bms
     user root
@@ -1064,14 +1168,6 @@ service wfdservice /system/bin/wfdservice
     group audio camera inet net_bt_stack drmrpc media_rw media input net_admin
     #removed these because of limit of 12 groups
     #graphics net_bt net_bt_admin bluetooth
-    disabled
-    oneshot
-
-on property:sys.wfdservice=enable
-    start wfdservice
-
-on property:sys.wfdservice=disable
-    stop wfdservice
 
 service RIDL /system/vendor/bin/RIDLClient.exe
     class late_start
@@ -1139,25 +1235,34 @@ service poweroffhandler /system/bin/poweroffhandler
     group graphics audio
     disabled
     oneshot
+service boot-check /system/bin/sh /system/etc/init.lct.bootcheck.sh
+    class main
+    user root
+    oneshot
 
-service fingerprintd /system/bin/fingerprintd
-    class late_start
-    socket fpce stream 0666 system system
-    user  system
-    group system sdcard_rw
-    system system
+service boot-checkend /system/bin/sh /system/etc/init.lct.bootcheckend.sh
+    class main
+    user root
     disabled
+    oneshot
 
-service gx_fpd /system/bin/gx_fpd
-     class core
-     user root
-     group system system
-     disabled
+service mm_audio_ftm /system/bin/mm-audio-ftm
+    user root
+    group root
+    disabled
+    oneshot
 
-on property:persist.sys.fp.vendor=switchf
-    stop gx_fpd
-    setprop persist.sys.fp.vendor searchf
-    start fingerprintd  
+on property:sys.audio_ftm_loopback=1
+    start mm_audio_ftm
 
-on property:persist.sys.fp.onstart=1
-   start fingerprintd 
+on property:sys.audio_ftm_loopback=0
+    stop mm_audio_ftm
+
+#caoyang_20160612 for Charging Limit start
+on property:persist.sys.runin=enable
+    write /sys/class/power_supply/battery/device/BatteryTestStatus 1
+
+on property:persist.sys.runin=disable
+    write /sys/class/power_supply/battery/device/BatteryTestStatus 0
+#caoyang_20160612 for Charging Limit end
+
