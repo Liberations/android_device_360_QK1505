@@ -20,7 +20,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 LOCAL_C_INCLUDES := system/core/init
 LOCAL_CFLAGS := -Wall -DANDROID_TARGET=\"$(TARGET_BOARD_PLATFORM)\"
-LOCAL_SRC_FILES := init_markw.cpp
-LOCAL_MODULE := libinit_markw
+LOCAL_SRC_FILES := init_QK1505.cpp
+LOCAL_MODULE := libinit_QK1505
 
 include $(BUILD_STATIC_LIBRARY)
