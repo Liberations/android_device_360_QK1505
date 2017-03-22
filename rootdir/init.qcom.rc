@@ -29,6 +29,7 @@ import init.qcom.power.rc
 import init.qcom.usb.rc
 import init.target.rc
 
+
 on early-init
     mount debugfs debugfs /sys/kernel/debug
     chmod 0755 /sys/kernel/debug
@@ -93,8 +94,7 @@ on boot
     chown bluetooth bluetooth /sys/devices/platform/msm_serial_hs.0/clock
     chmod 0660 /sys/devices/platform/msm_serial_hs.0/clock
 
-    chmod 0660 /proc/gesture/onoff
-    chown system system /proc/gesture/onoff
+ 
 
     chmod 0660 /dev/ttyHS2
     chown bluetooth bluetooth /dev/ttyHS2
@@ -354,7 +354,8 @@ on post-fs-data
     copy /system/vendor/qcril.db /data/misc/radio/qcril.db
     chown radio radio /data/misc/radio/qcril.db
     write /data/misc/radio/db_check_done 1
-
+   #Create gx_fpd related dirs
+    mkdir /data/system/fingerprint 0770 root system
 service perfd /system/vendor/bin/perfd
     class main
     user root
