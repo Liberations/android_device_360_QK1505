@@ -138,8 +138,8 @@ PRODUCT_PACKAGES += \
     fingerprintd
 
 # FPGesture
-PRODUCT_PACKAGES += \
-    FPGesture
+#PRODUCT_PACKAGES += \
+#    FPGesture
 
 # KeyHandler
 PRODUCT_PACKAGES += \
