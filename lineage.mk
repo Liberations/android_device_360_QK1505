@@ -14,16 +14,16 @@
 # limitations under the License.
 #
 
-$(call inherit-product, device/xiaomi/markw/full_markw.mk)
+$(call inherit-product, device/360/QK1505/full_QK1505.mk)
 
 # Inherit some common LineageOS stuff.
 $(call inherit-product, vendor/cm/config/common_full_phone.mk)
 
-PRODUCT_NAME := lineage_markw
-BOARD_VENDOR := Xiaomi
+PRODUCT_NAME := lineage_QK1505
+BOARD_VENDOR := 360
 
 PRODUCT_BUILD_PROP_OVERRIDES += \
-    BUILD_FINGERPRINT=Xiaomi/markw/markw:6.0.1/MMB29M/V8.1.2.0.MBEMIDI:user/release-keys \
-    PRIVATE_BUILD_DESC="markw-user 6.0.1 MMB29M V8.1.2.0.MBEMIDI release-keys"
+    BUILD_FINGERPRINT=360/QK1505/QK1505:6.0.1/MMB29M/6.0.042.P0.161110.QK1505:user/release-keys \
+    PRIVATE_BUILD_DESC="QK1505-user 6.0.1 MMB29M V42 release-keys"
 
-PRODUCT_GMS_CLIENTID_BASE := android-xiaomi
+PRODUCT_GMS_CLIENTID_BASE := android-360

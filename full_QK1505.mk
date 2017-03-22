@@ -19,9 +19,9 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base_telephony.mk)
 
 # Device identifier. This must come after all inclusions
-TARGET_VENDOR := Xiaomi
-PRODUCT_DEVICE := markw
-PRODUCT_NAME := full_markw
-PRODUCT_BRAND := Xiaomi
-PRODUCT_MODEL := Redmi 4 Prime
-PRODUCT_MANUFACTURER := Xiaomi
+TARGET_VENDOR := 360
+PRODUCT_DEVICE := QK1505
+PRODUCT_NAME := full_QK1505
+PRODUCT_BRAND := 360
+PRODUCT_MODEL := 360 N4S
+PRODUCT_MANUFACTURER := 360

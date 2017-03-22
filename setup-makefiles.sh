@@ -18,8 +18,8 @@
 set -e
 
 # Required!
-DEVICE=markw
-VENDOR=xiaomi
+DEVICE=QK1505
+VENDOR=360
 
 # Load extractutils and do some sanity checks
 MY_DIR="${BASH_SOURCE%/*}"
