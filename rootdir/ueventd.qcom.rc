@@ -25,9 +25,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# the DIAG device node is not world writable/readable.
+# The DIAG device node is not world writable/readable.
 /dev/diag                 0660   system     qcom_diag
-/dev/qseecom              0777   system     system
+
 /dev/genlock              0666   system     system
 /dev/kgsl                 0666   system     system
 /dev/kgsl-3d0             0666   system     system
@@ -106,7 +106,7 @@
 /dev/video*               0660   system     camera
 /dev/media*               0660   system     camera
 /dev/v4l-subdev*          0660   system     camera
-/dev/qseecom              0777   system     drmrpc
+/dev/qseecom              0660   system     drmrpc
 /dev/seemplog             0660   system     system
 /dev/pft                  0660   system     drmrpc
 /dev/gemini0              0660   system     camera
@@ -117,6 +117,7 @@
 /dev/adsprpc-smd          0664   system     system
 /dev/system_health_monitor 0644  radio      system
 /dev/mdss_rotator         0664   system     system
+
 # wlan
 /dev/wcnss_wlan           0660   system     system
 /dev/wcnss_ctrl           0660   system     system
@@ -133,7 +134,7 @@
 /dev/hw_random            0600   root       root
 /dev/adsprpc-smd          0664   system     system
 
-#permissions for audio
+# Permissions for audio
 /dev/audio_slimslave      0660   system     audio
 /dev/msm_qcelp            0660   system     audio
 /dev/msm_evrc             0660   system     audio
@@ -183,7 +184,7 @@
 /dev/tsc_mux0             0660   media       media
 /dev/tsc_ci0              0660   media       media
 
-# sensors
+# Sensors
 /sys/devices/i2c-12/12-*  pollrate_ms 0664 system system
 /sys/devices/f9925000.i2c/i2c-0/0-*                 enable         0660    input    system
 /sys/devices/f9925000.i2c/i2c-0/0-*                 poll_delay     0660    input    system
@@ -205,10 +206,6 @@
 /sys/devices/virtual/optical_sensors/lightsensor    ls_poll_delay  0660    input    system
 /sys/devices/virtual/input/input*                   poll           0660    input    system
 /sys/devices/virtual/input/input*                   pollrate_ms    0660    input    system
-/sys/devices/virtual/switch/hall                    state          0664    input    system
-/sys/devices/virtual/switch/hall                    enable         0660    input    system
-/sys/class/switch/hall                              state          0664    input    system
-/sys/class/switch/hall                              enable          0660    input    system
 /sys/devices/soc/78b7000.i2c/i2c-3/3-0020/input/input*    secure_touch         0440   system  drmrpc
 /sys/devices/soc/78b7000.i2c/i2c-3/3-0020/input/input*    secure_touch_enable  0660   system  drmrpc
 /sys/devices/soc/78b7000.i2c/i2c-3/3-0038/input/input*    secure_touch         0440   system  drmrpc
@@ -226,7 +223,7 @@
 /sys/devices/soc/600000.qcom,pcie/pci0000:00/0000:00:00.0/0000:01:00.0/net/wlan0/queues/rx-* rps_cpus 0660 system system
 /sys/devices/soc/600000.qcom,pcie/pci0000:00/0000:00:00.0/0000:01:00.0/net/p2p0/queues/rx-* rps_cpus 0660 system system
 
-#nfc permissions
+# nfc permissions
 /dev/nfc-nci              0660    nfc         nfc
 /dev/nq-nci               0660    nfc         nfc
 /dev/assd                 0660    nfc         nfc
@@ -248,9 +245,15 @@
 # Fingerprint device
 /dev/qbt1000              0660   system     system
 
-#ImproveTouch device
+# ImproveTouch device
 /dev/hbtp_input           0660   system     system
 /dev/hbtp_vm              0660   system     system
 
 # Add device block for FRP
 /dev/block/platform/soc/7824900.sdhci/by-name/config    0600   system     system
+
+# fpc Fingerprint
+/sys/devices/soc/soc:fpc1020		hw_reset			0220   system     system
+/sys/devices/soc/soc:fpc1020		irq	        		0660   system     system
+/sys/devices/soc/soc:fpc1020      	wakeup_enable	        	0220   system     system
+/sys/devices/soc/soc:fpc1020      	compatible_all	        	0220   system     system

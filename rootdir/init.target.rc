@@ -27,8 +27,6 @@
 #
 #
 
-import init.carrier.rc
-
 on early-init
     mkdir /firmware 0771 system system
     mkdir /system 0777 root root
@@ -39,30 +37,12 @@ on post-fs
     export LD_PRELOAD libNimsWrap.so
 
 on fs
-    wait /dev/block/bootdevice
-
     mount_all fstab.qcom
-    write /proc/sys/vm/swappiness 100
 
-    # Keeping following partitions outside fstab file. As user may not have
-    # these partition flashed on the device. Failure to mount any partition in fstab file
-    # results in failure to launch late-start class.
-
-    wait /dev/block/bootdevice/by-name/cache
-    mount ext4 /dev/block/bootdevice/by-name/cache /cache nosuid nodev barrier=1
-
-    wait /dev/block/bootdevice/by-name/persist
-    mount ext4 /dev/block/bootdevice/by-name/persist /persist nosuid nodev barrier=1
     mkdir /persist/data 0700 system system
     restorecon_recursive /persist
 
-    wait /dev/block/bootdevice/by-name/dsp
-    mount ext4 /dev/block/bootdevice/by-name/dsp /dsp ro nosuid nodev barrier=1
-
-    wait /dev/block/bootdevice/by-name/modem
-    mount vfat /dev/block/bootdevice/by-name/modem /firmware ro context=u:object_r:firmware_file:s0,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337
-    write /sys/kernel/boot_adsp/boot 1
-
+on post-fs
     wait /dev/block/bootdevice/by-name/oem
     mount ext4 /dev/block/bootdevice/by-name/oem /oem ro nosuid nodev barrier=1
 
@@ -77,11 +57,12 @@ on post-fs-data
     mkdir /data/misc/dts 0770 media audio
     mkdir /data/misc/hbtp 0750 system system
 
-#start camera server as daemon
+# Start camera server as daemon
 service qcamerasvr /system/bin/mm-qcamera-daemon
     class late_start
     user camera
     group camera system inet input graphics
+    writepid /dev/cpuset/system-background/tasks
 
 on init
    write /sys/module/qpnp_rtc/parameters/poweron_alarm 1
@@ -118,16 +99,6 @@ service qseecomd /system/bin/qseecomd
    user root
    group root
 
-#service aostlmd /system/bin/aostlmd
-#   class late_start
-#   user system
-#   group system net_raw
-
-service perfd /system/vendor/bin/perfd
-   class main
-   user root
-   disabled
-
 service thermal-engine /system/vendor/bin/thermal-engine
    class main
    user root
@@ -148,18 +119,26 @@ service audiod /system/bin/audiod
 
 on boot
     start rmt_storage
-    insmod /system/lib/modules/adsprpc.ko
-# access permission for secure touch
+
+    # Access permission for secure touch
     chmod 0660 /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch_enable
     chmod 0440 /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch
     chmod 0660 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch_enable
     chmod 0440 /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch
-    chmod 0644 /dev/goodix_fp
     chown system drmrpc /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch_enable
     chown system drmrpc /sys/devices/soc.0/78b7000.i2c/i2c-3/3-0020/input/input0/secure_touch
     chown system drmrpc /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch_enable
     chown system drmrpc /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/secure_touch
-    chown system system /dev/goodix_fp
+
+    # Sensors
+    chmod 0775 /persist/sensors
+    chmod 0664 /persist/sensors/sensors_settings
+    chown system root /persist/sensors/sensors_settings
+    chmod 0664 /persist/sensors/gyro_sensitity_cal
+    chown system root /persist/sensors/gyro_sensitity_cal
+    mkdir /data/misc/sensors
+    chmod 0775 /data/misc/sensors
+    start sensors
 
 service wcnss-service /system/bin/wcnss_service
     class main
@@ -187,7 +166,7 @@ service ims_rtp_daemon /system/bin/ims_rtp_daemon
    class main
    user system
    socket ims_rtpd stream 0660 system radio
-   group radio net_raw diag diag inet log
+   group radio diag inet log
    disabled
 
 service imscmservice /system/bin/imscmservice
@@ -199,12 +178,6 @@ service imscmservice /system/bin/imscmservice
 on property:sys.ims.DATA_DAEMON_STATUS=1
     start ims_rtp_daemon
     start imscmservice
-
-service hbtp /system/vendor/bin/hbtp_daemon
-    class main
-    user system
-    group system
-    disabled
 
 service ppd /system/vendor/bin/mm-pp-dpps
     class late_start
@@ -236,22 +209,10 @@ on charger
     mount ext4 /dev/block/bootdevice/by-name/system /system ro barrier=1
     load_all_props
     setprop sys.usb.configfs 0
-    setprop persist.sys.usb.config mass_storage
+    setprop persist.sys.usb.config charging
     start qcom-post-boot
-    setprop persist.sys.usb.config mass_storage
+    setprop persist.sys.usb.config charging
     start hvdcp_opti
-	start thermal-engine
-service dts_configurator /system/bin/dts_configurator
-    class late_start
-    user system
-    group media audio
-    oneshot
-
-service dtseagleservice /system/bin/dts_eagle_service
-    class late_start
-    user system
-    group audio media
-    disabled
 
 service adsprpcd /system/bin/adsprpcd
     class main
@@ -262,9 +223,6 @@ service hvdcp_opti /system/bin/hvdcp_opti
    class main
    user root
    group root
-
-on property:init.svc.dts_configurator=stopped
-    start dtseagleservice
 
 service per_mgr /system/bin/pm-service
     class core
@@ -293,26 +251,3 @@ service mdtpd /system/vendor/bin/mdtpd
     class late_start
     user root
     group system radio drmrpc
-
-on boot
-    write /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/fw_name PR1702898-s3528t_00260005_00380008.img
-    write /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0020/input/input0/update_fw 1
-	
-service fingerprintd /system/bin/fingerprintd
-    class late_start
-    user system
-	group system
-
-service gx_fpd /system/bin/gx_fpd
-    class late_start
-    user root
-    group root system
-
-on property:sys.fp.goodix=0
-    stop gx_fpd
-	
-# nutlet ifaata service
-service teeserver /system/bin/teeserver
-    class main
-    user  system
-    group system

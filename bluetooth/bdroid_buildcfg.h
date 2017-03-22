@@ -1,6 +1,5 @@
-/**
- * Copyright (C) 2012 The Android Open Source Project
- * Copyright (C) 2016 The CyanogenMod Project
+/*
+ * Copyright (C) 2017 The LineageOS Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +17,11 @@
 #ifndef _BDROID_BUILDCFG_H
 #define _BDROID_BUILDCFG_H
 
-#define BTM_DEF_LOCAL_NAME   "360 N4S"
+#include <cutils/properties.h>
+#include <string.h>
 
-#define BLE_VND_INCLUDED   TRUE
-#define BT_CLEAN_TURN_ON_DISABLED 1
-#define BTC_INCLUDED TRUE
+#define BTM_DEF_LOCAL_NAME "Xiaomi Redmi 4 Prime"
 #define BTA_DISABLE_DELAY 1000 /* in milliseconds */
-#define BLUETOOTH_QCOM_SW TRUE
-#define BLUETOOTH_QCOM_LE_INTL_SCAN TRUE
+#define BLUETOOTH_QTI_SW TRUE
+#define BLE_VND_INCLUDED   TRUE
 #endif
